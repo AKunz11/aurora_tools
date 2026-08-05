@@ -1,0 +1,9 @@
+To do list:
+
+- Split L_S into quadrants on nightside
+- Keep working on spectra
+    - Pull L_s values from CSV
+    - Work on getting normal detections too (seperate pdf)
+    - send to nick
+    
+

@@ -1,0 +1,21 @@
+Cameron Emissions:
+CO + e(E>6ev) -> CO + e  [Direct impact]
+CO2+ + e(th) -> CO + O   [Dissociative Recomb.]
+
+UVD Emissions:
+CO2+ + e(E>18ev) -> CO2+ + e_n + e''
+
+
+Volumetric Production Rate:
+VPR=n(z)*integral[electron flux * cross section * dE] (E1<E<E2), n(z) is the number density of specific molecule at altitude z
+For monoenergetic, just set electron flux = n, all at one energy
+
+What is the volumetric emission rate for the two emission features based on monoelectric energy (good)
+
+Units:
+
+nz(cm^-3)*flux(cm^2 s^-1)*cross section (cm^-2)
+
+For dissociate recomb,
+Do number_density for CO2+ * electron density * Sonal's K value, which depends on T(z)
+

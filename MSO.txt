@@ -1,0 +1,5 @@
+MSO -> Mars Sun Orbital
+
++X_{MSO}: Points from the center of Mars toward the Sun
++Y_{MSO}: Points opposite to Mars' orbital velocity (dusk-ward)
++Z_{MSO}: Completes the right-handed system, pointing toward the North ecliptic pole

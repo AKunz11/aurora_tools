@@ -1,0 +1,26 @@
+# Python stuff
+__pycache__/
+*.pyc
+
+# Environments
+.venv/
+venv/
+.env
+.vscode/
+.ipynb_checkpoints/
+desktop/
+
+# Misc
+figures/
+normal_spectra.pdf
+anomalous_spectra.pdf
+spice/
+
+
+# Extra old code
+model.py
+model1.py
+file_tests.ipynb
+ml_helpers.py
+testing.py
+worked_example.py
