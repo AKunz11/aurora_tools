@@ -1,8 +1,15 @@
+"""Analyze and plot CO Cameron-to-UVD emission ratios."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.mixture import GaussianMixture
 
 def bimodal_test(data):
+    """Fit one-, two-, and three-component Gaussian mixture models.
+
+    Prints each model's AIC, BIC, means, standard deviations, and weights for
+    ratios in the inclusive range from 0 to 100.
+    """
     x = data['CO/CO2p'].dropna().values
     x2 = x[(x >= 0) & (x <= 100)].reshape(-1, 1)
 
@@ -23,6 +30,13 @@ def bimodal_test(data):
     
 
 def plot_ratio(data, mode='normal'):
+    """Plot the direct or inverse emission-ratio distribution.
+
+    Args:
+        data: DataFrame containing the ``CO/CO2p`` ratio column.
+        mode: ``normal`` plots CO Cameron/UVD; any other value plots UVD/CO
+            Cameron.
+    """
     plt.figure(figsize=(10,6))
 
     if mode == 'normal':

@@ -1,3 +1,5 @@
+"""Display the saved Mars crustal magnetic-field background array."""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -5,6 +7,7 @@ from matplotlib import colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def plot_map(map_img_dir):
+    """Plot a logarithmically normalized magnetic-field NumPy array."""
     mag_cmap = plt.get_cmap('Blues')
     mag_cmap.set_bad((1,1,1))
 

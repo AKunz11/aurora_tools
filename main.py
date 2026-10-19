@@ -1,3 +1,10 @@
+"""Run the primary Mars nightglow filtering and visualization workflow.
+
+Configure the selection criteria and local data paths below, then call
+``main()`` or run this file as a script. Plotting helpers are opt-in near the
+end of ``main()``; the filtered table is always saved as ``filtered_data.csv``.
+"""
+
 #Libraries
 from turtle import lt
 import matplotlib.pyplot as plt
@@ -76,6 +83,12 @@ me_and_adrienne_path=r'D:/nightglow_tools/combined_orbits.csv' #csv with all of 
 
 #Call function
 def main():
+    """Filter the master detection table, create selected plots, and save it.
+
+    Returns:
+        pandas.DataFrame: Deduplicated detections that pass the configured
+        orbit, geometry, signal-quality, and classification filters.
+    """
     #Filter data
     data=pd.read_csv(master_path)
     data = data[

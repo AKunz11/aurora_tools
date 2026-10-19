@@ -1,8 +1,24 @@
+"""Load per-orbit spectra and produce a coadded background spectrum."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
 def coadd(data, key, wl_dim=512, spectra_root="E:/nightglow/spectra_out"):
+    """Coadd spectra matching the detections in ``data`` and plot the result.
+
+    Args:
+        data: DataFrame or iterable containing ``orbit_number`` and ``scan``.
+        key: Spectrum class to retain: ``All``, ``Normal``, or ``Anomalous``.
+        wl_dim: Required number of wavelength samples per spectrum.
+        spectra_root: Root containing the 100-orbit spectral subdirectories.
+
+    Returns:
+        tuple: The wavelength grid and summed background spectrum.
+
+    Raises:
+        ValueError: If no matching spectrum has the requested dimensions.
+    """
     bg = np.zeros(wl_dim, dtype=float)
     spectra_counts = 0
     wl = None

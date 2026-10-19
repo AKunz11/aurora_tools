@@ -1,3 +1,5 @@
+"""Plot detection latitudes against a uniform surface-area expectation."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path

@@ -1,3 +1,9 @@
+"""Select per-orbit spectra and export annotated grids to a multi-page PDF.
+
+The executable configuration is at the bottom of the file. Set the input CSV,
+spectra directory, and output PDF paths before running this script.
+"""
+
 import os
 import math
 import numpy as np
@@ -19,6 +25,19 @@ def load_spectra_for_orbits(
     scan_col=None,
     max_orbits=None
 ):
+    """Load spectra for detections that pass the built-in quality filters.
+
+    Args:
+        csv_path: Detection table used to select orbits and scans.
+        spectra_dir: Directory containing ``orbit#####_spectra.npz`` files.
+        orbit_col: Name of the orbit-number column.
+        scan_col: Optional scan column; when omitted, load every scan in each
+            selected orbit.
+        max_orbits: Optional maximum number of filtered table rows to process.
+
+    Returns:
+        tuple: A list of loaded spectrum records and the filtered DataFrame.
+    """
     df = pd.read_csv(csv_path)
 
 
@@ -104,8 +123,11 @@ def plot_spectra_pdf(
     smooth=None,
     title="Spectra"
 ):
-    """
-    Save spectra as a multi-page PDF.
+    """Save valid spectra as annotated panels in a multi-page PDF.
+
+    ``data_csv`` supplies solar longitude metadata. ``ncols`` and ``nrows``
+    control the page grid, and ``smooth`` optionally sets the moving-average
+    width applied before plotting.
     """
 
     # Open data csv for extra info

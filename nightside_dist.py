@@ -1,9 +1,24 @@
+"""Visualize filtered detections across the nightside of Mars."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Circle
 from matplotlib import colors
 
 def nightside_dist(data,key,start,stop,label=False):
+    """Plot nightside detections using geographic and MSO coordinates.
+
+    Args:
+        data: DataFrame containing geographic coordinates, MSO coordinates,
+            local time, solar longitude, and orbit number.
+        key: Human-readable selection label used in titles and filenames.
+        start: First orbit represented by the selection.
+        stop: Upper orbit bound represented by the selection.
+        label: Whether to annotate detections with orbit numbers.
+
+    The function always creates the primary MSO scatter plot. Additional plots
+    are controlled by the local ``heat`` and ``scatter`` switches.
+    """
     lat = np.asarray(data['latitude'], dtype=float)
     ls  = np.asarray(data['solar_longitude'], dtype=float)
     lt = np.asarray(data['local_time'], dtype=float)  # must exist

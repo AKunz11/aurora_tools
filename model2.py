@@ -1,3 +1,11 @@
+"""Model Mars Cameron-band and UVD volumetric emission rates.
+
+The script interpolates atmospheric profiles onto a common altitude grid,
+evaluates electron-impact and dissociative-recombination pathways, and plots
+volume emission rates plus vertical and limb intensities for selected electron
+energies. Input profile paths are configured in the ``FILES`` section.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -154,11 +162,13 @@ def calculate_ver(density_profile, flux_profile, cross_section):
     return 4*np.pi* density_profile * flux_profile * cross_section
 
 def calculate_ver_dr(electron_density_profile, ion_density_profile, e_temps):
+    """Calculate dissociative-recombination VER from density and temperature."""
     k=4.2*10**-7 * (300 / e_temps)**0.75 *.29
     return 4*np.pi* k * electron_density_profile * ion_density_profile
 
 
 def print_value_at_altitude(label, altitude_grid, density, flux, cross_section, ver, report_alt):
+    """Print the modeled inputs and VER nearest an exact report altitude."""
     idx = np.where(altitude_grid == report_alt)[0]
     if len(idx) == 0:
         print(f"{report_alt} km is not in the grid.")

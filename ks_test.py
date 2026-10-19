@@ -1,3 +1,10 @@
+"""Compare normal and anomalous detections with two-sample K-S tests.
+
+Update ``master_path`` before running this module as a standalone script. The
+same quality filters and 12.7 emission-ratio cutoff used by the main workflow
+are applied before testing SZA and latitude distributions.
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt

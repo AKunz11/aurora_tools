@@ -1,7 +1,15 @@
+"""Plot temporal and seasonal coverage for filtered detections."""
+
 import matplotlib.pyplot as plt
 import datetime as dt
 
 def plot_coverage(data):
+    """Plot solar longitude by date and emission ratio by solar longitude.
+
+    Args:
+        data: DataFrame containing ``date``, ``solar_longitude``, and
+            ``CO/CO2p`` columns.
+    """
     #Plot year vs solar longitude
     #Conver date to datetime (e.g. 2016-May-28)
     x = [dt.datetime.strptime(date, '%Y-%b-%d') for date in data['date']]

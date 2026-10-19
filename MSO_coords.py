@@ -1,3 +1,9 @@
+"""Convert Mars planetocentric coordinates to Mars-Sun Orbital coordinates.
+
+The module loads the configured NAIF SPICE kernels when imported. Update the
+kernel paths below before using these conversion functions on another system.
+"""
+
 import numpy as np
 import spiceypy as spice
 
@@ -8,6 +14,7 @@ spice.furnsh('D:/nightglow_tools/spice/SPK/mar097.bsp') #SPK
 print("SPICE kernels loaded successfully.")
 
 def planetocentric_to_planetographic(lat_c_deg):
+    """Convert a Mars planetocentric latitude in degrees to planetographic."""
     radii = spice.bodvrd("MARS", "RADII", 3)[1]
     re, _, rp = radii
     lat_c = np.deg2rad(lat_c_deg)
@@ -15,6 +22,13 @@ def planetocentric_to_planetographic(lat_c_deg):
     return np.rad2deg(lat_g)
 
 def mars_geodetic_to_cart(lat_centric_deg,lon,alt=0):
+    """Return an IAU_MARS Cartesian position for a latitude and longitude.
+
+    Args:
+        lat_centric_deg: Planetocentric latitude in degrees.
+        lon: East longitude in degrees.
+        alt: Altitude above the reference ellipsoid in kilometers.
+    """
     #Check: Assume alt is from ellipsoid
     radii=spice.bodvrd('MARS', 'RADII', 3)[1]
     re,_,rp=radii
@@ -30,6 +44,7 @@ def mars_geodetic_to_cart(lat_centric_deg,lon,alt=0):
     return np.array([x,y,z])
 
 def build_mso_rotation(et):
+    """Build the J2000-to-MSO rotation matrix at ephemeris time ``et``."""
     state,_=spice.spkezr('MARS',et,'J2000','NONE','SUN')
     r_mars=state[:3]
     v_mars=state[3:]
@@ -46,6 +61,7 @@ def build_mso_rotation(et):
     return rot
 
 def iau_to_mso(r_iau,et):
+    """Rotate an IAU_MARS Cartesian position into the MSO frame."""
     rot_body_to_j2000=spice.pxform('IAU_MARS', 'J2000', et)
     r_j2000=rot_body_to_j2000 @ r_iau
 
@@ -55,11 +71,13 @@ def iau_to_mso(r_iau,et):
     return r_mso
 
 def mars_latlon_to_mso(lat,lon,alt,et):
+    """Convert a Mars latitude, longitude, altitude, and time to MSO Cartesian."""
     r_iau=mars_geodetic_to_cart(lat,lon,alt)
     r_mso=iau_to_mso(r_iau,et)
     return r_mso
 
 def mso_rect_to_lonlat(r_mso):
+    """Convert an MSO Cartesian vector to longitude and latitude in degrees."""
     r,lon,lat=spice.reclat(r_mso)
     lon=np.rad2deg(lon)
     lat=np.rad2deg(lat)
@@ -74,6 +92,12 @@ def mso_rect_to_lonlat(r_mso):
 
 #main function
 def mso_coords(data):
+    """Add ``mso_longitude`` and ``mso_latitude`` columns to a DataFrame.
+
+    The input must contain ``latitude``, ``longitude``, ``altitude``, and
+    SPICE ephemeris time ``et`` columns. The same DataFrame is returned after
+    being updated in place.
+    """
     mso_lons=[]
     mso_lats=[]
     for index, row in data.iterrows():

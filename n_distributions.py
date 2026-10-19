@@ -1,3 +1,9 @@
+"""Compare one- and two-Gaussian fits to the emission-ratio distribution.
+
+This standalone analysis reads the configured master table, applies the common
+detection-quality filters, and reports likelihood, AIC, and BIC statistics.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -27,11 +33,20 @@ data = data[
 data = data.drop_duplicates(subset=["nick_number"])
 
 def gauss_pdf(x, mu, sig):
+    """Evaluate a normal probability-density function at ``x``."""
     pxi = np.exp(-0.5 * ((x - mu) / sig)**2) / (sig * np.sqrt(2*np.pi))
     return pxi
 
 
 def two_dist(data, bins=30, min=0, max=100):
+    """Fit and plot one- and two-component Gaussian ratio models.
+
+    Args:
+        data: DataFrame containing a ``CO/CO2p`` column.
+        bins: Number of histogram bins.
+        min: Minimum ratio retained for fitting and plotting.
+        max: Maximum ratio retained for fitting and plotting.
+    """
 
     # Step 1: Prepare Data
     data=data['CO/CO2p'].dropna() #take initial ratios

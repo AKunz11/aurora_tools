@@ -1,8 +1,11 @@
+"""Plot the CO Cameron/UVD emission ratio as a function of latitude."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 def ratio_lat(data):
+    """Create a ratio-versus-latitude scatter plot from a detection table."""
     lat=np.asarray(data['latitude'], dtype=float)
     co_ratio=np.abs(np.asarray(data['CO/CO2p'], dtype=float))
 

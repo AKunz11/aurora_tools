@@ -1,7 +1,14 @@
+"""Plot solar zenith angle counts and a geometric reference distribution."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 def sza_hist(data,key):
+    """Plot SZA counts for detections at or above 105 degrees.
+
+    The dashed curve represents the expected bin counts for a geometrically
+    uniform population over the same SZA range.
+    """
     fig,axs=plt.subplots()
 
     SZA_min = 105

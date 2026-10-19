@@ -1,9 +1,18 @@
+"""Plot detection locations over a Mars crustal magnetic-field map."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def plot_map(data, map_img_dir, key):
+    """Overlay orbit-colored detections on a magnetic-field background.
+
+    Args:
+        data: DataFrame with ``longitude``, ``latitude``, and ``orbit_number``.
+        map_img_dir: Path to the NumPy magnetic-field array.
+        key: Human-readable selection label used in the title.
+    """
     mag_cmap = plt.get_cmap('Greys')
     mag_cmap.set_bad((1,1,1))
 

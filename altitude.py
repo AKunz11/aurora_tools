@@ -1,3 +1,5 @@
+"""Compare altitude distributions for normal and anomalous detections."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -5,6 +7,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def alt_hist(data, n_bins=10):
+    """Plot raw and sample-size-adjusted altitude histograms.
+
+    Detections with ``CO/CO2p >= 12.7`` are treated as anomalous; all others
+    are treated as normal. Poisson uncertainties are shown for both groups.
+
+    Args:
+        data: DataFrame containing ``altitude`` and ``CO/CO2p`` columns.
+        n_bins: Number of shared altitude bins.
+    """
     anoms   = data[data['CO/CO2p'] >= 12.7]
     normals = data[data['CO/CO2p'] < 12.7]
 
