@@ -1,95 +1,193 @@
-NIGHTGLOW TOOLS (Should be named aurora tools frankly)
-Alexander Kunz
+AURORA TOOLS
+============
+
+Tools for filtering Mars nightglow detections and exploring their spatial,
+seasonal, spectral, and emission-ratio distributions. The main workflow reads a
+master detection table, applies quality filters, converts locations to Mars-Sun
+Orbital (MSO) coordinates, creates selected plots, and writes a filtered table.
 
 
-Important steps:
-1. Install requirements
-    pip install -r requirements.txt
+QUICK START
+-----------
 
-2. Install spice kernels
-    LSK
-        naif0012.tls
-    PCK
-        pck00010.tpc
-    SPK
-        mar097.bsp
+1. Create and activate a virtual environment (PowerShell):
 
-The only somewhat important files are outlined below
+       py -m venv .venv
+       .\.venv\Scripts\Activate.ps1
 
-=======================================================================================================================================================
-main.py
+2. Install the Python dependencies:
 
-This is the function where just about all of the plotting is run.
+       py -m pip install -r requirements.txt
 
-Key parameters
-orb_start: Start of orbit range
-orb_stop: The stop
-key: Whether we look at normal, anomalous, or all detections
-consecutive_check: Only use orbits containing detections in neighboring scans
-print_stuff: Whether u want to read annoying text
-isolate_orbits: If we want to use orbits used in previous study by Adrienne Pickerill
-orbit_compare: If we want to use orbits that I have AND that Adrienne used
-remove_cutoff_bin: If we want to see what happens around the 12.7 cutoff
-min_sza: minimum solar zenith angle of a detection
-n_pix: minimum number of pixels in a detection
-pearson_r: Pearson correlation coefficient
-coUVD: The cutoff from normal->anomalous
-wl_dim: Dimensions of the l1b file, usually use 512 or 219
+3. Download the required NAIF SPICE kernels and place them in these folders:
 
-Usage:
-Plotting starts at line 202
-(Just uncomment the plotting functions you want with each run)
+       spice/LSK/naif0012.tls
+       spice/PCK/pck00010.tpc
+       spice/SPK/mar097.bsp
 
-sza_hist: Plots the SZA distribution for detections
-plot_map: Plots the detection locations on the crustal magnetic field map
-latitude_hist: distribution of latitudes
-plot_local_time: distribution of local times
-nightside_dist: Plots locations of detections on nightside using MSO coords
-coadd: Coadded spectra for all the detections
-plot_ratio: plots distribution of the CO Cameron / UVD 
-alt_hist: Side-by-side comparison of altitude distributions
-ratio_lat: 
-plot_coverage: Shows orbit range and solar longitudes covered by data selection
+   The `spice/` directory is intentionally ignored by Git because the kernels
+   are external data files.
 
-Returns a "filtered_data.csv" containing good stuff
+4. Update the local paths before running anything:
 
-=======================================================================================================================================================
-Multiple Guassian fit test
-n_distributions.py
+   - In `main.py`, set `master_path` to the master detection CSV.
+   - In `MSO_coords.py`, point the three `spice.furnsh(...)` calls at the
+     downloaded kernels.
+   - If using comparison mode, set `me_and_adrienne_path` in `main.py`.
+   - Change any `D:/thesis_images/...` output paths in the plotting modules if
+     those directories do not exist on your computer.
 
-Used to check if the ratio data fit more than one distribution
-Currently only works for 1 or 2 Gaussians, but math was derived by hand
-If you want 3+, just use a premade library
+5. Run the main workflow:
 
-=======================================================================================================================================================
-Kolmogorov-Smirnov (KS) test
-ks_test.py
+       py main.py
 
-Runs a KS test to check if data prefers a one-distribution or a two-distribution fit
-
-=======================================================================================================================================================
-Volumetric Emission Rate (VER) models
-model2.py
-
-Details in model.txt
-
-Calculates and plots VER for the main reactions
-Calculates and plots limb intensity
-if check_data==True, plots the cross sections, electron flux, densities, electron temperatures
-
-=======================================================================================================================================================
-Big Spectra Plot
-big_spectra_plot.py
-
-Plots the spectra for all of the detections
-Change the filters at lines 31, 34 to switch between normal and anomalous
-Update directories at 217-219
-
-=======================================================================================================================================================
-
-Those are the big ticket items.
-There are a few random python files that make some tables and stuff but pretty unnecessary
-Also, I skipped the plotting functions used in main.py because I dont want to do all that
+   The filtered detections are written to `filtered_data.csv`. CSV files are
+   ignored by Git because they are treated as local input or generated output.
 
 
+SYSTEM REQUIREMENTS
+-------------------
 
+- Python with the packages pinned in `requirements.txt`
+- The three SPICE kernels listed above
+- A master detection CSV (not included in this repository)
+- A LaTeX installation if `plt.rc('text', usetex=True)` remains enabled in
+  `main.py` and `model2.py`
+- Spectral `.npz` files for the coadded- and full-spectrum workflows
+
+
+USING MAIN.PY
+-------------
+
+Configuration is currently done by editing the variables near the top of
+`main.py`.
+
+Selection settings:
+
+- `orb_start`, `orb_stop`: inclusive lower and exclusive upper orbit bounds
+- `key`: `All`, `Normal`, or `Anomalous`
+- `min_sza`: minimum solar zenith angle
+- `n_pix`: minimum number of contributing pixels
+- `pearson_r`: minimum MUV Pearson correlation coefficient
+- `coUVD`: CO Cameron/UVD ratio separating normal and anomalous detections
+- `wl_dim`: expected spectral array length (`512` or `219`)
+
+Optional switches:
+
+- `consecutive_check`: keep orbits containing multiple qualifying scans
+- `print_stuff`: print summary brightness and ratio statistics
+- `isolate_orbits`: run the specialized orbit-selection workflow
+- `orbit_compare`: merge detections with the external comparison table
+- `remove_cutoff_bin`: remove the histogram bin surrounding the ratio cutoff
+
+The plotting calls are grouped near the end of `main()`. Uncomment only the
+plots you want to generate:
+
+- `sza_hist(...)`: solar zenith angle distribution
+- `plot_map(...)`: detections over the crustal magnetic-field map
+- `latitude_hist(...)`: latitude distribution with a surface-area reference
+- `plot_local_time(...)`: local-time distributions
+- `nightside_dist(...)`: nightside locations in MSO coordinates
+- `coadd(...)`: coadded spectra
+- `plot_ratio(...)`: CO Cameron/UVD ratio distribution
+- `alt_hist(...)`: normal-versus-anomalous altitude distributions
+- `ratio_lat(...)`: emission ratio versus latitude
+- `plot_coverage(...)`: date and solar-longitude coverage
+
+The input table must include the columns used by the selected workflow. The
+main filter expects at least:
+
+    orbit_number, nick_number, scan, sza, count, pearson_r_muv,
+    color_flag_muv, type, local_time, CO/CO2p, latitude, longitude,
+    altitude, et
+
+Some optional plots also use `date`, `solar_longitude`, `CO_radiance`, and
+`CO2p_radiance`.
+
+
+OTHER ANALYSIS SCRIPTS
+----------------------
+
+`big_spectra_plot.py`
+    Loads per-orbit `.npz` spectra selected by a CSV table and creates a
+    multi-page spectrum PDF. Update `csv_path`, `spectra_dir`, and `savepath`
+    at the bottom of the file before running it.
+
+`ks_test.py`
+    Compares normal and anomalous SZA and latitude samples with two-sample
+    Kolmogorov-Smirnov tests. Update `master_path`, then run:
+
+        py ks_test.py
+
+`n_distributions.py`
+    Fits one- and two-Gaussian models to the CO Cameron/UVD ratio distribution
+    and reports AIC/BIC values. Update `master_path`, then run:
+
+        py n_distributions.py
+
+`model2.py`
+    Calculates volumetric emission-rate and intensity estimates for several
+    monoenergetic electron energies. It reads atmospheric profiles from the
+    ignored `data/` directory. See `model.txt` for the model assumptions, then
+    run:
+
+        py model2.py
+
+`mag_field.py`
+    Displays the crustal magnetic-field array by itself. Update the path in the
+    final `plot_map(...)` call before running it.
+
+
+MODULE GUIDE
+------------
+
+Core workflow:
+
+- `main.py` - filters the master table and coordinates plot generation
+- `MSO_coords.py` - converts Mars coordinates to the MSO frame
+- `MSO.txt` - short definition of the MSO axes
+- `coadded.py` - loads and coadds matching spectra
+
+Plotting helpers:
+
+- `altitude.py` - altitude distributions
+- `coverage.py` - observation-date and solar-longitude coverage
+- `latitude_hist.py` - latitude histogram and geometric reference
+- `local_time.py` - local-time histograms
+- `map.py` - detection locations over the magnetic-field map
+- `nightside_dist.py` - nightside/MSO distribution plots
+- `ratio_lat.py` - ratio versus latitude
+- `ratios.py` - ratio histogram and Gaussian-mixture comparison helper
+- `sza_hist.py` - SZA histogram and geometric reference
+
+Supporting files:
+
+- `bfield_smoothed.npy` - magnetic-field background used by `map.py`
+- `model.txt` - notes and equations for `model2.py`
+- `requirements.txt` - pinned Python dependencies
+- `todo.txt` - development notes
+
+
+DATA AND GENERATED FILES
+------------------------
+
+The repository intentionally ignores local environments, SPICE kernels, raw
+data, CSV tables, figures, and generated spectrum PDFs. These files can be
+large, machine-specific, or reproducible. See `.gitignore` for the complete
+list.
+
+If a file was already committed before an ignore rule was added, Git will
+continue tracking it. To stop tracking such a file without deleting the local
+copy, use:
+
+    git rm --cached <path>
+
+
+CURRENT LIMITATIONS
+-------------------
+
+- Several scripts still contain machine-specific absolute paths and must be
+  configured locally.
+- Some scripts execute their analysis immediately when imported; treat them as
+  standalone scripts unless you refactor them behind a `main()` guard.
+- The ignored input data and SPICE kernels are not downloaded automatically.

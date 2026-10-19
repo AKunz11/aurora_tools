@@ -3,9 +3,20 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import ks_2samp
 
-data_path='D:/nightglow_tools/nick_data.csv'
-
-data=pd.read_csv(data_path)
+master_path=r'E:/nightglow/master_cnn.csv' #Huge csv with all data merged
+data=pd.read_csv(master_path)
+data = data[
+    (data['orbit_number'] >= 0) & 
+    (data['orbit_number'] < 24600) &
+    (data['sza'] >= 105) &
+    (data['count'] >= 6) &
+    (data['pearson_r_muv'] >= 0.6) &
+    (data['color_flag_muv'] == 'green') &
+    (data['type']!='NON-DET') &
+    (data['type'] != 'NONE') &
+    (data['type'] != 'SEP')
+]
+data = data.drop_duplicates(subset=["nick_number"])
 
 anom_data=data[data['CO/CO2p'] >= 12.7]
 norm_data=data[data['CO/CO2p'] < 12.7]

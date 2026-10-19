@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-def coadd(data, key, wl_dim=512, spectra_root="D:/nightglow/spectra_out"):
+def coadd(data, key, wl_dim=512, spectra_root="E:/nightglow/spectra_out"):
     bg = np.zeros(wl_dim, dtype=float)
     spectra_counts = 0
     wl = None
@@ -18,7 +19,14 @@ def coadd(data, key, wl_dim=512, spectra_root="D:/nightglow/spectra_out"):
         o = int(row["orbit_number"])
         s = int(row["scan"])  # currently unused, but kept if you need it later
         
-        spectra_path = f"{spectra_root}/orbit{o:05d}_spectra.npz"
+        # Spectra are grouped into folders named for the first orbit in each
+        # 100-orbit block: e.g. orbit 2457 is in ``02400``.
+        block_start = (o // 100) * 100
+        spectra_path = (
+            Path(spectra_root)
+            / f"{block_start:05d}"
+            / f"orbit{o:05d}_spectra.npz"
+        )
         try:
             spectra_data = np.load(spectra_path, allow_pickle=True)
         except FileNotFoundError:
@@ -28,11 +36,11 @@ def coadd(data, key, wl_dim=512, spectra_root="D:/nightglow/spectra_out"):
 
         # keep only items with correct wavelength dimension
         if key == 'Anomalous':
-            good = [it for it in items if (it["background_kR"].size == wl_dim and it['flag']==1 and (it['co_average_kR']/it['co2p_average_kR']) >= 12.7)]
+            good = [it for it in items if (it["background_kR"].size == wl_dim and it["scan"] == s and it['flag']==1 and (it['co_average_kR']/it['co2p_average_kR']) >= 12.7)]
         elif key == 'Normal':
-            good = [it for it in items if (it["background_kR"].size == wl_dim and it['flag']==1 and ((it['co_average_kR']/it['co2p_average_kR']) < 12.7))]
+            good = [it for it in items if (it["background_kR"].size == wl_dim and it["scan"] == s and it['flag']==1 and ((it['co_average_kR']/it['co2p_average_kR']) < 12.7))]
         else:  # key == 'All'
-            good = [it for it in items if (it["background_kR"].size == wl_dim and it['flag']==1)]
+            good = [it for it in items if (it["background_kR"].size == wl_dim and it["scan"] == s and it['flag']==1)]
 
         if not good:
             continue

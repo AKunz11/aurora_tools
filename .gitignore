@@ -9,6 +9,7 @@ venv/
 .vscode/
 .ipynb_checkpoints/
 desktop/
+laptop/
 
 # Misc
 figures/
@@ -17,6 +18,8 @@ anomalous_spectra.pdf
 spice/
 assets/
 plotly_rewrites/
+data/
+*.csv
 
 
 # Extra old code
@@ -28,3 +31,7 @@ testing.py
 worked_example.py
 plot_webpage.py
 plot_webpage2.py
+adrienne_compare.py
+aurora_table_simple.py
+aurora_table.py
+spectra_test.py

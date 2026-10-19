@@ -2,9 +2,9 @@ import numpy as np
 import spiceypy as spice
 
 # Load kernels (LSK, PCK, SPK)
-spice.furnsh('spice/LSK/naif0012.tls') #LSK
-spice.furnsh('spice/PCK/pck00010.tpc') #PCK
-spice.furnsh('spice/SPK/mar097.bsp') #SPK
+spice.furnsh('D:/nightglow_tools/spice/LSK/naif0012.tls') #LSK
+spice.furnsh('D:/nightglow_tools/spice/PCK/pck00010.tpc') #PCK
+spice.furnsh('D:/nightglow_tools/spice/SPK/mar097.bsp') #SPK
 print("SPICE kernels loaded successfully.")
 
 def planetocentric_to_planetographic(lat_c_deg):

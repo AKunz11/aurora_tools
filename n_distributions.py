@@ -11,31 +11,33 @@ orb_start=2000 #usually 2000
 orb_stop=15500 #usually 15500
 
 
-master_path=r'D:/nightglow_tables/master.csv'
+master_path=r'E:/nightglow/master_cnn.csv' #Huge csv with all data merged
 data=pd.read_csv(master_path)
 data = data[
-    (data['orbit_number'] >= orb_start) & 
-    (data['orbit_number'] < orb_stop) &
-    (data['sza'] >= min_sza) &
-    (data['count'] >= n_pix) &
-    (data['pearson_r_muv'] >= pearson_r) &
+    (data['orbit_number'] >= 0) & 
+    (data['orbit_number'] < 24600) &
+    (data['sza'] >= 105) &
+    (data['count'] >= 6) &
+    (data['pearson_r_muv'] >= 0.6) &
     (data['color_flag_muv'] == 'green') &
-    (data['type'] != 'NON-DET') &
-    (data['type'] != 'NONE')
+    (data['type']!='NON-DET') &
+    (data['type'] != 'NONE') &
+    (data['type'] != 'SEP')
 ]
+data = data.drop_duplicates(subset=["nick_number"])
 
 def gauss_pdf(x, mu, sig):
     pxi = np.exp(-0.5 * ((x - mu) / sig)**2) / (sig * np.sqrt(2*np.pi))
     return pxi
 
 
-def two_dist(data, bins=30, min=-2, max=2):
+def two_dist(data, bins=30, min=0, max=100):
 
     # Step 1: Prepare Data
-    data=1/data['CO/CO2p'].dropna() #take initial ratios
+    data=data['CO/CO2p'].dropna() #take initial ratios
     data=data[(data >= min) & (data <= max)].values #limit to 0 -> 100
 
-    target = 1/12.7
+    target = 12.7
 
     # Determine histogram bin edges exactly as plt.hist will use
     #bin_edges = np.histogram_bin_edges(data, bins=bins)
@@ -157,4 +159,4 @@ def two_dist(data, bins=30, min=-2, max=2):
 
     return
 
-two_dist(data, bins=30, min=-0.1, max=0.6)
+two_dist(data, bins=30, min=0, max=60)

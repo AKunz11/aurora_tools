@@ -30,13 +30,13 @@ plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern'], 'size':s})
 plt.rc('text', usetex=True)
 
 #Variables
-orb_start=400 #usually 2000
-orb_stop=15500 #usually 15500
+orb_start=100 #usually 2000
+orb_stop=24600 #usually 15500
 key='All' #All, Anomalous, or Normal
 consecutive_check=False #Whether to only include orbits with at least n scans in a row (e.g. 3 or more consecutive orbits that meet the other criteria)
 print_stuff=False
 isolate_orbits=False
-orbit_compare=True
+orbit_compare=False
 remove_cutoff_bin=False
 
 min_sza=105
@@ -70,8 +70,8 @@ adriennes=pd.DataFrame({'nick_number':
 #print("How many orbits does Adrienne have: ", len(orb_select))
 
 #Paths
-master_path=r'D:/nightglow_tables/master.csv' #Huge csv with all data merged
-map_img_path=r'D:/bfield_smoothed.npy'
+master_path=r'E:/nightglow/master_cnn.csv' #Huge csv with all data merged
+map_img_path=r'bfield_smoothed.npy'
 me_and_adrienne_path=r'D:/nightglow_tools/combined_orbits.csv' #csv with all of my detections and all of Adrienne's detections, with classifications of whether each scan is in mine, hers, or both, and whether it's good data or not based on visual inspection csv
 
 #Call function
@@ -86,7 +86,8 @@ def main():
         (data['pearson_r_muv'] >= pearson_r) &
         (data['color_flag_muv'] == 'green') &
         (data['type']!='NON-DET') &
-        (data['type'] != 'NONE')
+        (data['type'] != 'NONE') &
+        (data['type'] != 'SEP')
     ]
 #include (data['type'] != 'NON-DET') above ^^
 
@@ -201,13 +202,13 @@ def main():
 
     #sza_hist(data,key)
     #plot_map(data, map_img_path, key)
-    #latitude_hist(data,key)
+    #latitude_hist(data,key,normalized=True, y_max=0.25)
     #plot_local_time(data,key)
-    #nightside_dist(data,key,orb_start,orb_stop,label=True)
+    #nightside_dist(data,key,orb_start,orb_stop,label=False)
     #coadd(data,key,wl_dim=wl_dim)
     
     if key == 'All':
-        #plot_ratio(data, mode='inverse')
+        #plot_ratio(data, mode='normal') #mode can be normal or inverse
         #alt_hist(data,n_bins=16)
         #ratio_lat(data)
         #plot_coverage(data) 
@@ -222,7 +223,7 @@ def main():
         print(f'Mean ratio of detections: {data[data["CO/CO2p"] > 0]["CO/CO2p"].mean()}')
 
     #Save filtered data
-    data.to_csv(f'D:/nightglow_tools/filtered_data.csv', index=False)
+    data.to_csv(f'E:/aurora_tools/filtered_data.csv', index=False, float_format="%.2f")
 
     return data
 
