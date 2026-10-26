@@ -2,8 +2,9 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
-def sza_hist(data,key):
+def sza_hist(data, key, output_dir='E:/alex_final_figs'):
     """Plot SZA counts for detections at or above 105 degrees.
 
     The dashed curve represents the expected bin counts for a geometrically
@@ -41,11 +42,13 @@ def sza_hist(data,key):
     axs.plot(bin_centers, expected, '--', lw=2, c='black', label='Uniform (geometry)')
     axs.errorbar(bin_centers, counts, yerr=np.sqrt(counts), fmt='none')
     axs.set_xticks(np.arange(100,181,10))
-    axs.set_xlabel('SZA ($^\circ$)')
+    axs.set_xlabel(r'SZA ($^\circ$)')
     axs.set_ylabel('Counts')
     axs.set_title(f'SZA ({key})')
     axs.legend()
-    plt.savefig(f'D:/thesis_images/sza_{key}.png', dpi=300)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_dir / f'sza_{key}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
     #Bars are actual detections, dashed line is how many you would expect if uniform distribution

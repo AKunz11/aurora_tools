@@ -54,9 +54,12 @@ The `spice/` directory is ignored by Git because these kernels are external data
 Before running the project:
 
 1. Set `master_path` in `main.py` to the master detection CSV.
-2. Point the three `spice.furnsh(...)` calls in `MSO_coords.py` to the downloaded kernels.
+2. Keep the kernels in the `spice/` structure shown above. The project loads
+   them relative to `MSO_coords.py`; when they are absent, the workflow skips
+   only the MSO nightside plot and continues with the other plots.
 3. If you use comparison mode, set `me_and_adrienne_path` in `main.py`.
-4. Replace any `D:/thesis_images/...` output paths in the plotting modules if those directories do not exist on your machine.
+4. Set `plot_save_dir` in `main.py` if you want a location other than
+   `E:/alex_final_figs`.
 
 ### 5. Run the workflow
 
@@ -73,7 +76,7 @@ The workflow writes the selected detections to `filtered_data.csv`.
 | Python and the packages in `requirements.txt` | Data processing, statistics, plotting, and coordinate conversion |
 | NAIF SPICE kernels | Mars coordinate transformations |
 | Master detection CSV | Primary analysis input; not included in the repository |
-| LaTeX installation | Required while `plt.rc('text', usetex=True)` is enabled in `main.py` and `model2.py` |
+| LaTeX installation | Optional for the main workflow; still required by scripts such as `model2.py` that enable `usetex=True` |
 | Spectral `.npz` files | Required for the coadded- and full-spectrum workflows |
 
 ## Main workflow

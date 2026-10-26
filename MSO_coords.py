@@ -6,12 +6,35 @@ kernel paths below before using these conversion functions on another system.
 
 import numpy as np
 import spiceypy as spice
+from pathlib import Path
 
-# Load kernels (LSK, PCK, SPK)
-spice.furnsh('D:/nightglow_tools/spice/LSK/naif0012.tls') #LSK
-spice.furnsh('D:/nightglow_tools/spice/PCK/pck00010.tpc') #PCK
-spice.furnsh('D:/nightglow_tools/spice/SPK/mar097.bsp') #SPK
-print("SPICE kernels loaded successfully.")
+SPICE_ROOT = Path(__file__).resolve().parent / 'spice'
+SPICE_KERNELS = (
+    SPICE_ROOT / 'LSK' / 'naif0012.tls',
+    SPICE_ROOT / 'PCK' / 'pck00010.tpc',
+    SPICE_ROOT / 'SPK' / 'mar097.bsp',
+)
+_kernels_loaded = False
+
+
+def load_spice_kernels():
+    """Load the project-local SPICE kernels once."""
+    global _kernels_loaded
+    if _kernels_loaded:
+        return
+
+    missing = [str(path) for path in SPICE_KERNELS if not path.is_file()]
+    if missing:
+        missing_list = '\n  - '.join(missing)
+        raise FileNotFoundError(
+            f"Missing required SPICE kernels:\n  - {missing_list}\n"
+            "Place them under the project's spice/ directory as described "
+            "in README.md."
+        )
+
+    for kernel_path in SPICE_KERNELS:
+        spice.furnsh(str(kernel_path))
+    _kernels_loaded = True
 
 def planetocentric_to_planetographic(lat_c_deg):
     """Convert a Mars planetocentric latitude in degrees to planetographic."""
@@ -98,6 +121,8 @@ def mso_coords(data):
     SPICE ephemeris time ``et`` columns. The same DataFrame is returned after
     being updated in place.
     """
+    load_spice_kernels()
+
     mso_lons=[]
     mso_lats=[]
     for index, row in data.iterrows():

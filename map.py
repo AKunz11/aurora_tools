@@ -2,10 +2,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 from matplotlib import colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def plot_map(data, map_img_dir, key):
+def plot_map(data, map_img_dir, key, output_dir='E:/alex_final_figs'):
     """Overlay orbit-colored detections on a magnetic-field background.
 
     Args:
@@ -38,8 +39,11 @@ def plot_map(data, map_img_dir, key):
     cbar_orbit = fig.colorbar(sc, cax=cax_orbit, orientation='horizontal')
     cbar_orbit.set_label('Orbit number')
 
-    axs.set_xlabel('Longitude ($^\circ$)')
-    axs.set_ylabel('Latitude ($^\circ$)')
+    axs.set_xlabel(r'Longitude ($^\circ$)')
+    axs.set_ylabel(r'Latitude ($^\circ$)')
     axs.set_title(f'Location of {key} Detections (n={len(data)})')
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_dir / f'map_{key}.png', dpi=300, bbox_inches='tight')
     plt.show()
     return

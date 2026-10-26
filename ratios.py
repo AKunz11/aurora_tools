@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 from sklearn.mixture import GaussianMixture
 
 def bimodal_test(data):
@@ -29,7 +30,7 @@ def bimodal_test(data):
 
     
 
-def plot_ratio(data, mode='normal'):
+def plot_ratio(data, key='All', mode='normal', output_dir='E:/alex_final_figs'):
     """Plot the direct or inverse emission-ratio distribution.
 
     Args:
@@ -37,7 +38,7 @@ def plot_ratio(data, mode='normal'):
         mode: ``normal`` plots CO Cameron/UVD; any other value plots UVD/CO
             Cameron.
     """
-    plt.figure(figsize=(10,6))
+    fig = plt.figure(figsize=(10,6))
 
     if mode == 'normal':
         n, bins, _=plt.hist(data['CO/CO2p'],bins=30, range=((0,100)),edgecolor='black',alpha=.6)
@@ -57,6 +58,13 @@ def plot_ratio(data, mode='normal'):
     plt.legend()
     plt.xlabel('Ratio')
     plt.ylabel('Counts')
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        output_dir / f'emission_ratio_{mode}_{key}.png',
+        dpi=300,
+        bbox_inches='tight',
+    )
     plt.show()
 
     #bimodal_test(data)

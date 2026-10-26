@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def latitude_hist(data, key, normalized=False, y_max=None,
-                  output_dir='D:/thesis_images'):
+                  output_dir='E:/alex_final_figs'):
     """Plot a latitude histogram against the area-weighted geometry reference.
 
     Set ``normalized=True`` for a fraction-of-detections plot.  Use the same
@@ -62,6 +62,10 @@ def latitude_hist(data, key, normalized=False, y_max=None,
     fig.tight_layout()
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    fig.savefig(Path(output_dir) / f'lat_{key}{suffix}.png', dpi=300)
+    fig.savefig(
+        Path(output_dir) / f'latitude_{key}{suffix}.png',
+        dpi=300,
+        bbox_inches='tight',
+    )
     plt.show()
     return fig, ax

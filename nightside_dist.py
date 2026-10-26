@@ -2,10 +2,13 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 from matplotlib.patches import Circle
 from matplotlib import colors
 
-def nightside_dist(data,key,start,stop,label=False):
+def nightside_dist(
+    data, key, start, stop, label=False, output_dir='E:/alex_final_figs'
+):
     """Plot nightside detections using geographic and MSO coordinates.
 
     Args:
@@ -24,6 +27,8 @@ def nightside_dist(data,key,start,stop,label=False):
     lt = np.asarray(data['local_time'], dtype=float)  # must exist
     mso_lon= np.asarray(data['mso_longitude'], dtype=float)
     mso_lat= np.asarray(data['mso_latitude'], dtype=float)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     if 'hours_from_midnight' in data.columns:
         hfm = np.asarray(data['hours_from_midnight'], dtype=float)
@@ -83,7 +88,11 @@ def nightside_dist(data,key,start,stop,label=False):
     cbar = plt.colorbar(sc, ax=ax)
     cbar.set_label("L$_s$")
     plt.title(f'Nightside Distribution - {key}', fontsize=16)
-    plt.savefig(f'D:/thesis_images/night_{key}.png', dpi=600)
+    fig.savefig(
+        output_dir / f'nightside_distribution_{key}.png',
+        dpi=600,
+        bbox_inches='tight',
+    )
     plt.show()
 
 
@@ -121,7 +130,11 @@ def nightside_dist(data,key,start,stop,label=False):
         ax.set_ylim(-1, 1)
         plt.colorbar(im, ax=ax, label="Counts per bin")
         plt.title(f'Nightside Distribution Heatmap - {key}')
-        plt.savefig(f'D:/thesis_images/heatmap_{key}.png', dpi=300)
+        fig.savefig(
+            output_dir / f'nightside_heatmap_{key}.png',
+            dpi=300,
+            bbox_inches='tight',
+        )
         plt.show()
 
 
@@ -144,13 +157,17 @@ def nightside_dist(data,key,start,stop,label=False):
                 )
 
         ax.set_xlabel("Hours from midnight")
-        ax.set_ylabel("Latitude ($^\circ$)")
+        ax.set_ylabel(r"Latitude ($^\circ$)")
 
         cbar = plt.colorbar(sc, ax=ax)
         cbar.set_label("L$_s$")
 
         plt.title(f'Nightside Distribution - {key}', fontsize=16)
-        plt.savefig(f'D:/thesis_images/nightscatter_{key}.png', dpi=300)
+        fig.savefig(
+            output_dir / f'nightside_scatter_{key}.png',
+            dpi=300,
+            bbox_inches='tight',
+        )
         plt.show()
     
     return

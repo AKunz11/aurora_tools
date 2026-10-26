@@ -1,12 +1,11 @@
 """Run the primary Mars nightglow filtering and visualization workflow.
 
 Configure the selection criteria and local data paths below, then call
-``main()`` or run this file as a script. Plotting helpers are opt-in near the
-end of ``main()``; the filtered table is always saved as ``filtered_data.csv``.
+``main()`` or run this file as a script. The filtered table and enabled plots
+are saved each time the workflow runs.
 """
 
 #Libraries
-from turtle import lt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -33,13 +32,19 @@ plt.rc('xtick', labelsize=s)
 plt.rc('ytick', labelsize=s)
 plt.rc('legend', fontsize=s)
 plt.rc('figure', titlesize=s)
-plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern'], 'size':s})
-plt.rc('text', usetex=True)
+plt.rc('font', **{
+    'family': 'serif',
+    'serif': ['Computer Modern', 'DejaVu Serif'],
+    'size': s,
+})
+plt.rc('mathtext', fontset='cm')
+plt.rc('text', usetex=False)
 
 #Variables
 orb_start=100 #usually 2000
 orb_stop=24600 #usually 15500
-key='All' #All, Anomalous, or Normal
+key='Normal' #All, Anomalous, or Normal; ignored when sep=True
+sep=True #If we want only SEP events
 consecutive_check=False #Whether to only include orbits with at least n scans in a row (e.g. 3 or more consecutive orbits that meet the other criteria)
 print_stuff=False
 isolate_orbits=False
@@ -51,6 +56,7 @@ n_pix=6
 pearson_r=0.6
 coUVD=12.7
 wl_dim=512 #512 or 219
+plot_save_dir=r'E:/alex_final_figs'
 
 orb_select=[10384, 10488, 10562, 10563, 10568, 10607, 10617, 10634, 10650,
             10654, 11482, 2512, 2524, 2587, 2730, 3258, 3379, 3389, 3432,
@@ -79,7 +85,7 @@ adriennes=pd.DataFrame({'nick_number':
 #Paths
 master_path=r'E:/nightglow/master_cnn.csv' #Huge csv with all data merged
 map_img_path=r'bfield_smoothed.npy'
-me_and_adrienne_path=r'D:/nightglow_tools/combined_orbits.csv' #csv with all of my detections and all of Adrienne's detections, with classifications of whether each scan is in mine, hers, or both, and whether it's good data or not based on visual inspection csv
+me_and_adrienne_path=r'combined_orbits.csv' #csv with all of my detections and all of Adrienne's detections, with classifications of whether each scan is in mine, hers, or both, and whether it's good data or not based on visual inspection csv
 
 #Call function
 def main():
@@ -89,6 +95,11 @@ def main():
         pandas.DataFrame: Deduplicated detections that pass the configured
         orbit, geometry, signal-quality, and classification filters.
     """
+    selected_key = 'SEP' if sep else key
+    selected_plot_dir = (
+        f'{plot_save_dir}/sep' if sep else plot_save_dir
+    )
+
     #Filter data
     data=pd.read_csv(master_path)
     data = data[
@@ -99,28 +110,55 @@ def main():
         (data['pearson_r_muv'] >= pearson_r) &
         (data['color_flag_muv'] == 'green') &
         (data['type']!='NON-DET') &
-        (data['type'] != 'NONE') &
-        (data['type'] != 'SEP')
+        (data['type'] != 'NONE')
     ]
-#include (data['type'] != 'NON-DET') above ^^
+
+    if sep:
+        data = data[data['type'] == 'SEP']
+    else:
+        data = data[data['type'] != 'SEP']
+
 
     lt = data['local_time'] % 24
     data['hours_from_midnight'] = ((lt + 12) % 24) - 12
-    if key == 'Anomalous':
+    if selected_key == 'Anomalous':
         data = data[data['CO/CO2p'] >= coUVD]
-    if key == 'Normal':
+    if selected_key == 'Normal':
         data = data[data['CO/CO2p'] < coUVD]
 
-    data=mso_coords(data)
+    mso_available = True
+    try:
+        data = mso_coords(data)
+    except FileNotFoundError as error:
+        mso_available = False
+        print(f"Warning: {error}")
+        print("Skipping the nightside MSO plot; the other plots will still run.")
     data = data.drop_duplicates(subset=["nick_number"])
 
     ######################################################################################
     #Check for consecutive orbits
     if consecutive_check:
         n=2 #how many scans in a row to check for
-        orbit_counts = data.groupby('orbit_number')['orbit_number'].transform('count')
-        data['consecutive']=orbit_counts >= n
-        data = data[data['consecutive'] == True]
+
+        def has_consecutive_scans(scans):
+            scan_numbers = np.sort(scans.dropna().astype(int).unique())
+            if len(scan_numbers) < n:
+                return False
+
+            run_length = 1
+            for difference in np.diff(scan_numbers):
+                run_length = run_length + 1 if difference == 1 else 1
+                if run_length >= n:
+                    return True
+            return False
+
+        qualifying_orbits = [
+            orbit_number
+            for orbit_number, orbit_data in data.groupby('orbit_number')
+            if has_consecutive_scans(orbit_data['scan'])
+        ]
+        data = data[data['orbit_number'].isin(qualifying_orbits)].copy()
+        data['consecutive'] = True
 
         #Print orbits that have duplicates
         duplicate_orbits = data[data.duplicated(subset=['orbit_number'], keep=False)]['orbit_number'].unique()
@@ -132,24 +170,7 @@ def main():
     ######################################################################################
     #If we want to select Adrienne's orbits
     if isolate_orbits:
-
-        #data = data[data['nick_number'].isin(adriennes)] #Overlap with her nick numbers
-        #data = data[~data['nick_number'].isin(adriennes)] #My unique nick numbers
-        data = data[data['type']=='NON-DET'] #Visual inspection rejects over ALL nick numbers
-        #print(len(data['orbit_number']))
-        
-        #Restrict to orbit number and nick number columns only, then save that csv
-        data=data[['orbit_number', 'nick_number', 'type']]
-        data.to_csv('D:/nightglow_tools/visual_inspection.csv', index=False)
-
-        #maka a csv of just adriennes orbits from the table above with orbit number by flooring nick number to get orbit number, then save that csv
-        adriennes['orbit_number'] = adriennes['nick_number'].apply(lambda x: int(float(x)))
-
-        df = adriennes[['orbit_number', 'nick_number']]
-
-        df.to_csv('D:/nightglow_tools/adrienne_orbits.csv', index=False)
-
-        #data.to_csv(f'D:/nightglow_tools/adrienne_orbits.csv', index=False)
+        data = data[data['nick_number'].isin(adriennes['nick_number'])].copy()
     ######################################################################################
 
     if orbit_compare:
@@ -169,8 +190,8 @@ def main():
         )
 
         # Clean whitespace just in case
-        data['mine'] = data['mine'].astype(str).str.strip()
-        data['good_data'] = data['good_data'].astype(str).str.strip()
+        data['mine'] = data['mine'].astype('string').str.strip()
+        data['good_data'] = data['good_data'].astype('string').str.strip()
 
         print(data['mine'].unique())
         print(data['good_data'].unique())
@@ -182,7 +203,7 @@ def main():
             (data['orbit_number'] < 15500)
         ]
 
-        data.to_csv(f'D:/nightglow_tools/combined_orbits_with_data.csv', index=False)
+        data.to_csv('combined_orbits_with_data.csv', index=False)
 
     if remove_cutoff_bin:
 
@@ -210,21 +231,29 @@ def main():
 
 
     #Number of detections
-    print(f"Number of {key} detections: {len(data)}")
+    print(f"Number of {selected_key} detections: {len(data)}")
     #Run the plotting functions accordingly:
 
-    #sza_hist(data,key)
-    #plot_map(data, map_img_path, key)
-    #latitude_hist(data,key,normalized=True, y_max=0.25)
-    #plot_local_time(data,key)
-    #nightside_dist(data,key,orb_start,orb_stop,label=False)
-    #coadd(data,key,wl_dim=wl_dim)
+    sza_hist(data, selected_key, output_dir=selected_plot_dir)
+    plot_map(data, map_img_path, selected_key, output_dir=selected_plot_dir)
+    latitude_hist(data, selected_key, normalized=True, y_max=0.25, output_dir=selected_plot_dir)
+    plot_local_time(data, selected_key, output_dir=selected_plot_dir)
+    if mso_available:
+        nightside_dist(
+            data,
+            selected_key,
+            orb_start,
+            orb_stop,
+            label=False,
+            output_dir=selected_plot_dir,
+        )
+    coadd(data, selected_key, wl_dim=wl_dim, output_dir=selected_plot_dir)
     
-    if key == 'All':
-        #plot_ratio(data, mode='normal') #mode can be normal or inverse
-        #alt_hist(data,n_bins=16)
-        #ratio_lat(data)
-        #plot_coverage(data) 
+    if selected_key in ('All', 'SEP'):
+        plot_ratio(data, selected_key, mode='normal', output_dir=selected_plot_dir) #mode can be normal or inverse
+        alt_hist(data, selected_key, n_bins=16, output_dir=selected_plot_dir)
+        ratio_lat(data, selected_key, output_dir=selected_plot_dir)
+        plot_coverage(data, selected_key, output_dir=selected_plot_dir)
         print('Done') #Just in case everything in the if statement is commented out
 
     if print_stuff:

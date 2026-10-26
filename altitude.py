@@ -2,28 +2,50 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
-import matplotlib.pyplot as plt
-import numpy as np
-
-def alt_hist(data, n_bins=10):
-    """Plot raw and sample-size-adjusted altitude histograms.
+def alt_hist(data, key='All', n_bins=10, output_dir='E:/alex_final_figs'):
+    """Plot altitude histograms for the selected detection population.
 
     Detections with ``CO/CO2p >= 12.7`` are treated as anomalous; all others
     are treated as normal. Poisson uncertainties are shown for both groups.
+    For the ``SEP`` key, all rows are plotted as one population instead.
 
     Args:
         data: DataFrame containing ``altitude`` and ``CO/CO2p`` columns.
         n_bins: Number of shared altitude bins.
     """
-    anoms   = data[data['CO/CO2p'] >= 12.7]
-    normals = data[data['CO/CO2p'] < 12.7]
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     all_alt = data['altitude'].to_numpy()
 
     # --- Shared bins (n_bins bins => n_bins+1 edges)
     bins = np.linspace(np.nanmin(all_alt), np.nanmax(all_alt), n_bins + 1)
     bin_centers = 0.5 * (bins[:-1] + bins[1:])
+
+    if key == 'SEP':
+        fig = plt.figure(figsize=(10, 6))
+        plt.hist(
+            all_alt,
+            bins=bins,
+            orientation='horizontal',
+            edgecolor='black',
+            alpha=0.6,
+        )
+        plt.xlabel('Counts')
+        plt.ylabel('Altitude (km)')
+        plt.title('Altitude Distribution (SEP)')
+        fig.savefig(
+            output_dir / f'altitude_{key}.png',
+            dpi=300,
+            bbox_inches='tight',
+        )
+        plt.show()
+        return
+
+    anoms = data[data['CO/CO2p'] >= 12.7]
+    normals = data[data['CO/CO2p'] < 12.7]
 
     # --- Counts for error bars and scaling
     h_anom, _ = np.histogram(anoms['altitude'], bins=bins)
@@ -34,7 +56,7 @@ def alt_hist(data, n_bins=10):
     norm_color = '#7b2cbf'  # purple
 
     # --- Figure one
-    plt.figure(figsize=(10,6))
+    fig = plt.figure(figsize=(10,6))
 
     # =========================
     # Panel 1: Raw counts
@@ -64,12 +86,17 @@ def alt_hist(data, n_bins=10):
     plt.ylabel('Altitude (km)')
     plt.title('Altitude Distribution (Raw Counts)')
     plt.legend()
+    fig.savefig(
+        output_dir / f'altitude_raw_counts_{key}.png',
+        dpi=300,
+        bbox_inches='tight',
+    )
 
     # =========================
     # Panel 2: Total events scaling
     # Both populations contain the same number of events, so it removes differences based on sample size.
     # =========================
-    plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6))
     # Counts of events
     N_anom = h_anom.sum()
     N_norm = h_norm.sum()
@@ -84,6 +111,11 @@ def alt_hist(data, n_bins=10):
         plt.xlabel('Counts (scaled)')
         plt.ylabel('Altitude (km)')
         plt.title('Equal-Total Scaling')
+        fig.savefig(
+            output_dir / f'altitude_equal_total_{key}.png',
+            dpi=300,
+            bbox_inches='tight',
+        )
         plt.show()
         return
 
@@ -125,6 +157,11 @@ def alt_hist(data, n_bins=10):
     plt.ylabel('Altitude (km)')
     plt.title('Altitude Distribution (Equal-Total Scaling)')
     plt.legend()
+    fig.savefig(
+        output_dir / f'altitude_equal_total_{key}.png',
+        dpi=300,
+        bbox_inches='tight',
+    )
     plt.show()
 
     
@@ -132,7 +169,7 @@ def alt_hist(data, n_bins=10):
     # Panel 3: Max normalization
     # Each distribution scaled so its peak = 1
     # =========================
-    plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6))
     # Avoid division by zero
     max_anom = np.max(h_anom) if np.max(h_anom) > 0 else 1
     max_norm = np.max(h_norm) if np.max(h_norm) > 0 else 1
@@ -172,5 +209,10 @@ def alt_hist(data, n_bins=10):
     plt.ylabel('Altitude (km)')
     plt.title('Altitude Distribution (Max-Normalized)')
     plt.legend()
+    fig.savefig(
+        output_dir / f'altitude_max_normalized_{key}.png',
+        dpi=300,
+        bbox_inches='tight',
+    )
     plt.show()
     return

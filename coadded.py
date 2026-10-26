@@ -4,7 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-def coadd(data, key, wl_dim=512, spectra_root="E:/nightglow/spectra_out"):
+def coadd(
+    data, key, wl_dim=512, spectra_root="E:/nightglow/spectra_out",
+    output_dir='E:/alex_final_figs'
+):
     """Coadd spectra matching the detections in ``data`` and plot the result.
 
     Args:
@@ -79,7 +82,13 @@ def coadd(data, key, wl_dim=512, spectra_root="E:/nightglow/spectra_out"):
     plt.xlabel("Wavelength (nm)")
     plt.title(f"Coadded Background Spectra - {key} - n={spectra_counts}")
     ax.axes.get_yaxis().set_visible(False)
-    plt.savefig(f'D:/thesis_images/coadd_{key}.png', dpi=300)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        output_dir / f'coadded_spectrum_{key}.png',
+        dpi=300,
+        bbox_inches='tight',
+    )
     plt.show()
 
     return wl, bg
